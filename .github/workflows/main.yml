@@ -1,0 +1,26 @@
+name: Keep Streak Green
+on:
+  schedule:
+    # Runs automatically every day at 06:00 UTC
+    - cron: "0 6 * * *"
+  workflow_dispatch: {} # Allows manual triggering
+
+permissions:
+  contents: write
+
+jobs:
+  commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update keepalive file
+        run: |
+          echo "$(date -u +%F) — heartbeat" >> .keepalive
+      - name: Commit and Push
+        run: |
+          git config user.name "${{ github.actor }}"
+          # Uses your GitHub noreply email so the commit is tied to your account
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git add .keepalive
+          git commit -m "chore: daily heartbeat $(date -u +%F)"
+          git push

@@ -16,10 +16,7 @@ jobs:
       - name: Roll Dice
         id: dice
         run: |
-          # Generates a number between 0 and 99
           RANDOM_NUM=$((RANDOM % 100))
-          # 80% chance of making a commit today.
-          # Change "80" to "50" if you want a 50% chance.
           if [ $RANDOM_NUM -lt 80 ]; then
             echo "run=true" >> $GITHUB_OUTPUT
             echo "Dice roll successful ($RANDOM_NUM). Will commit today."
@@ -30,10 +27,8 @@ jobs:
         shell: bash
 
       - name: Random delay
-        # Only run this step if the dice roll was successful
         if: steps.dice.outputs.run == 'true'
         run: |
-          # Generate a random delay between 1 and 10800 seconds (3 hours)
           DELAY=$((RANDOM % 10800 + 1))
           echo "Sleeping for $DELAY seconds to randomize commit time..."
           sleep $DELAY
@@ -51,10 +46,9 @@ jobs:
         if: steps.dice.outputs.run == 'true'
         run: |
           git config user.name "${{ github.actor }}"
-          # Uses your GitHub noreply email so the commit is tied to your account
           git config user.email "${{ github.actor }}@users.noreply.github.com"
           git add .keepalive
-
-          # Creates a commit message with the exact current time
           git commit -m "chore: activity heartbeat $(date -u)"
+          # Pull remote changes first to avoid rejection when runs overlap
+          git pull --rebase origin main
           git push
